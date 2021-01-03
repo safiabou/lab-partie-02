@@ -1,0 +1,105 @@
+                         Lab 12: U-Boot sur une Mini-Sdcard
+
+
+
+1. On clone the mainline U-boot sources:
+safia@ubuntu:~/Documents/TP/lab12$ git clone https://github.com/u-boot/u-boot.git
+
+
+2. On change vers la branche v2018.05
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ git checkout v2018.05
+
+=> Quand on clone le fichier du GIT par defaut il est dans la branche master mais nous on aura besoin de la branche v2018.05 donc on switch vers v2018.05.
+
+
+3. On vérifie qu'on est sur la bonne branche
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ git branch
+* (HEAD détachée sur v2018.05)
+  master
+
+
+4. On change le fichier de defconfig correspondant à notre carte (Processeur am335, carte beagle bone black).
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ cd configs 
+=> Pour accéder au fichier configs
+safia@ubuntu:~/Documents/TP/lab12/u-boot/configs$ ls * | grep boneblack
+=> pour parcourir tout les fichiers et chercher le fichier de defconfig correspondant à notre carte (Processeur am335, carte beagle bone black)
+am335x_boneblack_defconfig
+am335x_boneblack_vboot_defconfig 
+
+Le fichier correspondant à notre carte est donc : am335x_boneblack_defconfig
+
+5. On lance le make defconfig_file correspondant à notre carte
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ make am335x_boneblack_defconfig
+
+On vérifie qu’un fichier .config est généré dans le répertoire principale de U-boot.
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ ls .config
+.config
+
+On affiche le fichier .config
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ vim .config
+et on modifie la variable CONFIG_SYS_PROMPT
+$(votre-nom-famille)-uboot=> CONFIG_SYS_PROMPT="BOUCHAFA -uboot=> 
+
+=> Le contenue du fichier .config : Après avoir récupéré les sources, à partir de la racine de ce dernier (dans u-boot) on trouve des sous directories qui sont include config. Pour chaque carte on aura un fichier config associer à cette carte. 
+Le fichier config contient tous les péripheriques et leurs configurations, type de CPU... Toutes ses configurations sont dans un fichier .h qui a pre-processor constant (Qu'on peut modifier : Bloquer/activer des péripheriques...)
+
+6. On lance la commande de compilation make. Ensuite on vérifie si on arrive à générer les deux fichiers MLO et u-boot.img.
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ make
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ ls
+api        Documentation  lib           scripts          u-boot.cfg.configs
+arch       drivers        Licenses      snapshot.commit  u-boot.img
+board      dts            MAINTAINERS   spl              u-boot.lds
+cmd        env            Makefile      System.map       u-boot.map
+common     examples       MLO           test             u-boot-nodtb.bin
+config.mk  fs             MLO.byteswap  tools            u-boot.srec
+configs    include        net           u-boot           u-boot.sym
+disk       Kbuild         post          u-boot.bin
+doc        Kconfig        README        u-boot.cfg
+
+7. On connecte la carte SD à notre PC
+
+8. safia@ubuntu:~/Documents/TP/lab12/u-boot$ mount
+pour voir les partitions  et le point de montage
+
+9. Identification du nom de périphérique après branchement de la carte SD
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ sudo fdisk -l
+
+=> la commande dmesg sert à voir les actions faites par le noyau.
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ dmesg
+
+10. On démonte la partition avec la commande umount selon la manière dont le système voit le
+périphérique de carte média.
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ umount /dev/sdc1
+
+11. On efface la table de partition de la carte SD en éffaçant le premier Mo de la carte sd via la
+commande dd.
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ sudo dd if=/dev/zero of=/dev/sdc bs=1024 count=1024
+[sudo] Mot de passe de safia : 
+1024+0 enregistrements lus
+1024+0 enregistrements écrits
+1048576 bytes (1,0 MB, 1,0 MiB) copied, 0,890947 s, 1,2 MB/s
+
+12. On utilise la commande cfdisk /dev/nom de notre device pour vérifier que la table de partition
+de la carte SD est vide. Ensuite on crée une nouvelle partition.
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ sudo cfdisk /dev/sdc
+
+13. On formatte la partition que nous avons créé et on donne le nom boot à cette partition.
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ sudo mkfs.vfat -F 32 /dev/sdc1 -n boot
+
+
+14- On retire la carte et on l'insére à nouveau. On voit bien qu'il est monté automatiquement sur
+'/media/$USER/boot'. 
+On copie les deux fichiers générés MLO et u-boot.img sur cette partition.
+
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ cp MLO  /media/safia/boot
+safia@ubuntu:~/Documents/TP/lab12/u-boot$ cp u-boot.img  /media/safia/boot
+
+

@@ -1,0 +1,73 @@
+   Lab 16 : Root file system et montage NFS
+
+Cross compilation de BusyBox
+
+1. On fait un clone de besybox :
+safia@ubuntu:~/Documents/TP/lab16$ git clone https://github.com/mirror/busybox.git
+
+
+2. On liste les branches et on change notre branche pour pointer à la version 1_29_stable
+safia@ubuntu:~/Documents/TP/lab16/busybox$ git branch -a
+safia@ubuntu:~/Documents/TP/lab16/busybox$ git checkout remotes/origin/1_29_stable -b 1_29_stable
+
+
+3. On vérifie qu'on est sur la bonne version de branche
+safia@ubuntu:~/Documents/TP/lab16/busybox$ git branch
+* 1_29_stable
+
+
+Configuration de busybox
+
+5. On crée un fichier .config générique puis on vérifie sa création
+safia@ubuntu:~/Documents/TP/lab16/busybox$ make deconfig
+
+
+6. On édite le fichier .config
+
+safia@ubuntu:~/Documents/TP/lab16/busybox$ sudo apt-get install libgtk2.0-dev libglib2.0-dev libglade2-dev
+
+safia@ubuntu:~/Documents/TP/lab16/busybox$ make gconfig
+
+
+7.et 8. On effectue des modifications dans notre gconfig
+
+9.  On enregistre ses modifications
+
+10. On crée un nouveau répertoire nfsroot
+ 
+safia@ubuntu:~/Documents/TP/lab16/busybox$ make 
+safia@ubuntu:~/Documents/TP/lab16/busybox$ make install
+
+safia@ubuntu:~/Documents/TP/lab16$ ls
+busybox  lab16.txt  _nfsroot
+
+
+11.Le contenue du fichier nfsroot : 
+Le rootfile system contient la racine (Référencé par /) et dedans on a des répertoires et des sous répertoires.
+Pour notre cas après avoir fait la commande ls on trouve répertoires : bin qui inclus les commandes , usr, sbin , linuxrc
+
+
+safia@ubuntu:~/Documents/TP/lab16$ cd _nfsroot
+safia@ubuntu:~/Documents/TP/lab16/_nfsroot$ ls
+bin  linuxrc  sbin  usr
+
+
+12.On crée des nouveaux répertoires dev , proc, sys, etc et lib 
+safia@ubuntu:~/Documents/TP/lab16/_nfsroot$ mkdir dev proc sys etc lib 
+safia@ubuntu:~/Documents/TP/lab16/_nfsroot$ ls
+bin  dev  etc  lib  linuxrc  proc  sbin  sys  usr
+
+safia@ubuntu:~/Documents/TP/lab16/_nfsroot$ tree -L 1
+.
+├── bin
+├── dev
+├── etc
+├── lib
+├── linuxrc -> bin/busybox
+├── proc
+├── sbin
+├── sys
+└── usr
+
+8 directories, 1 file
+

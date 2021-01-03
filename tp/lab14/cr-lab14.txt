@@ -1,0 +1,126 @@
+                   LAB14: Cross Complilation d'un noyau linux
+
+1. On clone l'arborescene Linux principale:
+safia@ubuntu:~/Documents/TP/lab14$ git clone https://github.com/beagleboard/linux.git
+
+2. On change de branche en sélectionnant la branche 4.19
+safia@ubuntu:~/Documents/TP/lab14/linux$ git checkout remotes/origin/4.19 -b 4.19
+
+3. On installe les outils de la commande tree
+safia@ubuntu:~/Documents/TP/lab14/linux$ sudo apt-get install tree
+
+4. On affiche l'arborescence du répertoire linux avec la commande tree
+safia@ubuntu:~/Documents/TP/lab14/linux$ tree -L 1
+.
+├── arch
+├── block
+├── certs
+├── COPYING
+├── CREDITS
+├── crypto
+├── Documentation
+├── drivers
+├── firmware
+├── fs
+├── include
+├── init
+├── ipc
+├── jenkins_build.sh
+├── Jenkinsfile
+├── Kbuild
+├── Kconfig
+├── kernel
+├── lib
+├── LICENSES
+├── MAINTAINERS
+├── Makefile
+├── mm
+├── net
+├── README
+├── README.md
+├── samples
+├── scripts
+├── security
+├── sound
+├── ti_config_fragments
+├── tools
+├── usr
+└── virt
+
+24 directories, 10 files
+
+5. On analyse la taille des différents répertoires
+safia@ubuntu:~/Documents/TP/lab14/linux$ du -shc ./*
+130M	./arch
+1,9M	./block
+52K	./certs
+4,0K	./COPYING
+100K	./CREDITS
+3,4M	./crypto
+44M	./Documentation
+537M	./drivers
+156K	./firmware
+40M	./fs
+42M	./include
+192K	./init
+260K	./ipc
+4,0K	./jenkins_build.sh
+4,0K	./Jenkinsfile
+4,0K	./Kbuild
+4,0K	./Kconfig
+9,0M	./kernel
+4,5M	./lib
+196K	./LICENSES
+464K	./MAINTAINERS
+60K	./Makefile
+3,8M	./mm
+32M	./net
+4,0K	./README
+4,0K	./README.md
+1,5M	./samples
+3,5M	./scripts
+2,9M	./security
+36M	./sound
+148K	./ti_config_fragments
+27M	./tools
+52K	./usr
+728K	./virt
+919M	total
+
+=> Les drivers prennent plus d'espace disque car on a des milliers de drivers. Par contre, le kernel (gère les tâches, donne la priorité aux tâches...) a que 9M, il ne prend pas énormément d'espace.
+
+6. On identifie le deconfig file correspondant à la carte beagle board
+safia@ubuntu:~/Documents/TP/lab14/linux/arch/arm/configs$ ls | grep bb.org
+bb.org_defconfig
+
+7. On lance à partir du répertoire principale linux la commande make :
+safia@ubuntu:~/Documents/TP/lab14/linux$ sudo apt-get install flex bison
+safia@ubuntu:~/Documents/TP/lab14/linux$ make bb.org_defconfig
+  YACC    scripts/kconfig/zconf.tab.c
+  LEX     scripts/kconfig/zconf.lex.c
+  HOSTCC  scripts/kconfig/zconf.tab.o
+  HOSTLD  scripts/kconfig/conf
+#
+# configuration written to .config
+#
+8. On vérifie que le fichier a été bien généré 
+safia@ubuntu:~/Documents/TP/lab14/linux$ ls .config
+.config
+safia@ubuntu:~/Documents/TP/lab14/linux$ vim .config
+=> Le fichier .config stock toutes les configurations du noyau.
+
+
+9. On ouvre le .config en passant par l'outil xconfig 
+
+safia@ubuntu:~/Documents/TP/lab14/linux$ sudo apt install qt5-default pkg-config
+safia@ubuntu:~/Documents/TP/lab14/linux$ make xconfig
+  
+10.11.12.13 On effectue des modifications dans xconfig.
+
+14. On compile le noyau pour générer les fichiers am335x-boneblack.dtb
+safia@ubuntu:~/Documents/TP/lab14/linux$ sudo apt install libssl-dev bison flex
+safia@ubuntu:~/Documents/TP/lab14/linux$ make -j 4
+
+15. On Copie les fichiers dans le répertoire /var/lib/tftpboot
+safia@ubuntu:~/Documents/TP/lab14/linux/arch/arm/boot/dts$ sudo cp am335x-boneblack.dtb /var/lib/tftpboot
+safia@ubuntu:~/Documents/TP/lab14/linux/arch/arm/boot$ sudo cp zImage /var/lib/tftpboot

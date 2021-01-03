@@ -1,0 +1,187 @@
+                        Lab 13 : Booting the Beagle Board
+
+
+
+1. On clonne la documentation se trouvant dans le git
+safia@ubuntu:~/Documents/TP/lab13$ git clone https://github.com/CircuitCo/BeagleBone-Black/
+ 
+
+le numéro du canal d'interruption associé au Timer0 est le 66
+
+2. On insére notre carte SD qu'on a préparé lors du TP 12.
+3. On connecte les files de la carte en suivant les instructions fournis dans la documentation.
+4. Après avoir alimenter notre carte et brancher le connecteur USB vers série on voit bien l'apparition du port série : /dev/ttyUSB0
+
+5. On installe le programme de communication série afin d'assurer une communication avec notre carte via le port série
+safia@ubuntu:~/Documents/TP/lab13$ apt install nom-picocom
+
+
+6. On ajoute notre utilisateur au groupe dialout
+safia@ubuntu:~/Documents/TP/lab13$ ls -l /dev/ttyUSB0
+
+
+safia@ubuntu:/dev$ sudo adduser Safia dialout
+safia@ubuntu:/dev$ reboot
+
+safia@ubuntu:/dev$ cat /etc/group
+
+7. On lance la communication avec picocom
+safia@ubuntu:~/Documents/TP/lab13$ sudo picocom -b 115200 /dev/ttyUSB0
+[sudo] Mot de passe de safia : 
+picocom v2.2
+
+port is        : /dev/ttyUSB0
+flowcontrol    : none
+baudrate is    : 115200
+parity is      : none
+databits are   : 8
+stopbits are   : 1
+escape is      : C-a
+local echo is  : no
+noinit is      : no
+noreset is     : no
+nolock is      : no
+send_cmd is    : sz -vv
+receive_cmd is : rz -vv -E
+imap is        : 
+omap is        : 
+emap is        : crcrlf,delbs,
+
+Type [C-a] [C-h] to see available commands
+
+Terminal ready
+
+8. On réinitialise notre carte
+9. On utilise la commande help pour voir les commandes disponible
+
+ BOUCHAFA -uboot=> help
+ BOUCHAFA -uboot=> saveen
+
+10. On efface les variables d'environnement U-Boot
+
+BOUCHAFA -uboot=> env default -f -a
+## Resetting to default environment
+BOUCHAFA -uboot=> saveenv
+Saving Environment to MMC... Writing to redundant MMC(1)... OK
+
+=>La commande saveen nous permet de sauvegarder dans la mémoire flash. La mémoire flash est une mémoire non-volatile , donc nos variables seront stocker d'une manière persistante.
+
+11. Configuration réseau sur la carte cible Beagle Board
+BOUCHAFA -uboot=> setenv ipaddr 192.168.0.100
+BOUCHAFA -uboot=> setenv serverip 192.168.0.1
+BOUCHAFA -uboot=> setenv ethaddr 12:34:56:ab:cd:ef     
+BOUCHAFA -uboot=> setenv autostart no
+
+
+=>La commande sentev nous permet de changer les variables d'environements.
+
+12. On enregistre les paramètres sur le stockage eMMC 
+BOUCHAFA -uboot=> saveenv
+Saving Environment to MMC... Writing to MMC(1)... OK
+
+13. Configuration du réseau sur l'hôte du PC
+
+14. On vérifie que l’interface ethernet est bien connecter sur la machine virtuelle et non pas sur windows.
+Et on vérifie qu'on a bien configuré nos addresses IP
+BOUCHAFA -uboot=> ping 192.168.0.1
+link up on port 0, speed 100, full duplex
+Using cpsw device
+host 192.168.0.1 is alive
+
+
+15. Le nom de l'interface
+On install d'abord le package suivant 
+safia@ubuntu:~/Documents/TP/lab13$ sudo apt-get install net-tools
+
+safia@ubuntu:~/Documents/TP/lab13$ ifconfig -a
+ens33: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.150.133  netmask 255.255.255.0  broadcast 192.168.150.255
+        inet6 fe80::e839:1151:cb6d:df6f  prefixlen 64  scopeid 0x20<link>
+        ether 00:0c:29:ca:1e:cf  txqueuelen 1000  (Ethernet)
+        RX packets 757  bytes 707745 (707.7 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 448  bytes 44648 (44.6 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+enxa0cec8300195: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::1ca5:c21b:3d7c:8fbf  prefixlen 64  scopeid 0x20<link>
+        ether a0:ce:c8:30:01:95  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 67  bytes 11347 (11.3 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Boucle locale)
+        RX packets 301  bytes 24666 (24.6 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 301  bytes 24666 (24.6 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+
+
+16. Configuration de l'addresse IP de l'hôte à partir de l'interface graphique de Network Manager
+
+17.On redémarre l'interface ethernet
+safia@ubuntu:~$ sudo /etc/init.d/networking restart
+[ ok ] Restarting networking (via systemctl): networking.service.
+
+
+18. Test de la connexion réseau
+a. On installe le serveur TFTP sur notre PC
+
+=> Le protocole TFTP nous permet de transférer des fichiers du PC à la carte via Ethernet.
+
+safia@ubuntu:~/Documents/TP/lab13$ sudo apt installer tftpd-hpa
+
+
+b. On reboote la carte pour tenir compte des nouvelles valeurs de configurations du réseau.
+ On test la connexion TFTP (En envoyant un fichier du Host machine au Target machine)
+
+
+safia@ubuntu:~$ cd /var/lib/tftpboot
+safia@ubuntu:/var/lib/tftpboot$ sudo touch fichier.txt
+[sudo] Mot de passe de safia : 
+
+safia@ubuntu:/var/lib/tftpboot$ gedit fichier.txt
+ et écrire dans le fichier on sauvegarde
+
+BOUCHAFA -uboot=> tftp 0x81000000 fichier.txt
+link up on port 0, speed 100, full duplex
+Using cpsw device
+TFTP from server 192.168.0.1; our IP address is 192.168.0.100
+Filename 'fichier.txt'.
+Load address: 0x81000000
+Loading: #
+	 0 Bytes/s
+done
+Bytes transferred = 7 (7 hex)
+
+19.On vérifie la réussite du téléchargement  
+BOUCHAFA -uboot=> md 0x81000000
+81000000: 6c6c6568 000a206f 00000000 00000000    hello ..........
+81000010: 00000000 00000000 00000000 00000000    ................
+81000020: 00000000 00000000 00000000 00000000    ................
+81000030: 00000000 00000000 00000000 00000000    ................
+81000040: 00000000 00000000 00000000 00000000    ................
+81000050: 00000000 00000000 00000000 00000000    ................
+81000060: 00000000 00000000 00000000 00000000    ................
+81000070: 00000000 00000000 00000000 00000000    ................
+81000080: 00000000 00000000 00000000 00000000    ................
+81000090: 00000000 00000000 00000000 00000000    ................
+810000a0: 00000000 00000000 00000000 00000000    ................
+810000b0: 00000000 00000000 00000000 00000000    ................
+810000c0: 00000000 00000000 00000000 00000000    ................
+810000d0: 00000000 00000000 00000000 00000000    ................
+810000e0: 00000000 00000000 00000000 00000000    ................
+810000f0: 00000000 00000000 00000000 00000000    ................
+
+
+
+
+
+
+
+

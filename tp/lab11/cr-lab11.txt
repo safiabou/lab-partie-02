@@ -1,0 +1,134 @@
+     Lab. 11 : Installation de la chaîne de Cross compilation
+                   (Processeur cible : AM335X, Cortex A8)
+
+
+1. Installation de la chaîne de cross compilation proposé par le repository de ubuntu.
+safia@ubuntu:~/Documents/TP/lab11$ sudo apt gcc-arm-linux-gnueabi
+
+2. Le chemin d’accès au cross compilateur et le nom de l’exécutable que nous allons utiliser pour cross compiler vos programmes (suffix-gcc):
+
+safia@ubuntu:~/Documents/TP/lab11$ dpkg -L gcc-arm-linux-gnueabi
+/.
+/usr
+/usr/bin
+/usr/share
+/usr/share/doc
+/usr/share/doc/cpp-arm-linux-gnueabi
+/usr/share/man
+/usr/share/man/man1
+/usr/bin/arm-linux-gnueabi-gcc
+/usr/bin/arm-linux-gnueabi-gcc-ar
+/usr/bin/arm-linux-gnueabi-gcc-nm
+/usr/bin/arm-linux-gnueabi-gcc-ranlib
+/usr/bin/arm-linux-gnueabi-gcov
+/usr/bin/arm-linux-gnueabi-gcov-dump
+/usr/bin/arm-linux-gnueabi-gcov-tool
+/usr/share/doc/cpp-arm-linux-gnueabi/README.Bugs
+/usr/share/doc/gcc-arm-linux-gnueabi
+/usr/share/man/man1/arm-linux-gnueabi-gcc-ar.1.gz
+/usr/share/man/man1/arm-linux-gnueabi-gcc-nm.1.gz
+/usr/share/man/man1/arm-linux-gnueabi-gcc-ranlib.1.gz
+/usr/share/man/man1/arm-linux-gnueabi-gcc.1.gz
+/usr/share/man/man1/arm-linux-gnueabi-gcov-dump.1.gz
+/usr/share/man/man1/arm-linux-gnueabi-gcov-tool.1.gz
+/usr/share/man/man1/arm-linux-gnueabi-gcov.1.gz
+
+3. L'ajout des deux variables d’environnement ARCH et CROSS_COMPILE de tels manière à ce qu’elle soient visible et reconnu par notre système à
+chaque démarrage d’un nouveau terminal (ARCH=arm et CROSS_COMPILE=arm-linux-gnueabi-).
+
+On ouvre le fichier .bashrc via la commande : safia@ubuntu:~$ vim .bashrc
+
+Et on ajoute les deux variables:
+
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabi-
+
+Ensuite, on enregistre et on quitte ( echap : wq)
+
+On ferme le terminal et on re-ouvre puis on tape les deux commandes echo $ARCH et echo $CROSS_COMPILE
+
+safia@ubuntu:~/Documents/TP/lab11$ echo $ARCH
+arm
+safia@ubuntu:~/Documents/TP/lab11$ echo $CROSS_COMPILE
+arm-linux-gnueabi-
+
+
+4.L'accès au cross compilateur à partir de notre bureau.
+
+safia@ubuntu:~/Bureau$ arm-linux-gnueabi-
+arm-linux-gnueabi-addr2line     arm-linux-gnueabi-gcov-7
+arm-linux-gnueabi-ar            arm-linux-gnueabi-gcov-dump
+arm-linux-gnueabi-as            arm-linux-gnueabi-gcov-dump-7
+arm-linux-gnueabi-c++filt       arm-linux-gnueabi-gcov-tool
+arm-linux-gnueabi-cpp           arm-linux-gnueabi-gcov-tool-7
+arm-linux-gnueabi-cpp-7         arm-linux-gnueabi-gprof
+arm-linux-gnueabi-dwp           arm-linux-gnueabi-ld
+arm-linux-gnueabi-elfedit       arm-linux-gnueabi-ld.bfd
+arm-linux-gnueabi-gcc           arm-linux-gnueabi-ld.gold
+arm-linux-gnueabi-gcc-7         arm-linux-gnueabi-nm
+arm-linux-gnueabi-gcc-ar        arm-linux-gnueabi-objcopy
+arm-linux-gnueabi-gcc-ar-7      arm-linux-gnueabi-objdump
+arm-linux-gnueabi-gcc-nm        arm-linux-gnueabi-ranlib
+arm-linux-gnueabi-gcc-nm-7      arm-linux-gnueabi-readelf
+arm-linux-gnueabi-gcc-ranlib    arm-linux-gnueabi-size
+arm-linux-gnueabi-gcc-ranlib-7  arm-linux-gnueabi-strings
+arm-linux-gnueabi-gcov          arm-linux-gnueabi-strip
+
+5. L'ajout de la variable d’environnement CROSS_COMPILE au makefile crée lors de la partie 10 et l'ajout des fichiers
+sources .c et .h afin d'évoquer un cross-compilateur
+
+Le makefile:
+CC = gcc
+	OBJ = test.o max.o min.o var.o
+	ifeq ($(DEBUG),yes)
+		CC_OPTIONS= -g -Wall
+	else
+		CC_OPTIONS=
+	endif
+
+Install:	My-binaire
+	mv My-binaire /home/safia
+		
+My-binaire:	 ${OBJ}
+	${CROSS_COMPILE}${CC} ${CC_OPTIONS} ${OBJ} -o $@
+ifeq	($(DEBUG),yes)
+
+	@echo "Génération en mode Debug"
+
+else
+	
+	@echo "Génération en mode Release"
+
+endif	
+
+max.o:	max.c
+	${CROSS_COMPILE}${CC} ${CC_OPTIONS} -c $< -o $@ 
+min.o:	min.c
+	${CROSS_COMPILE}${CC} ${CC_OPTIONS} -c $< -o $@
+var.o:	var.c
+	${CROSS_COMPILE}${CC} ${CC_OPTIONS} -c $< -o $@
+
+test.o:	test.c
+	${CROSS_COMPILE}${CC} ${CC_OPTIONS} -c $^ -o $@
+clean: 
+	rm ${OBJ}
+
+
+6.Faire appel au cross compilateur en lançant les commandes "make clean" et "make". 
+
+safia@ubuntu:~/Documents/TP/lab11$ make clean
+rm test.o max.o min.o var.o
+safia@ubuntu:~/Documents/TP/lab11$ make
+arm-linux-gnueabi-gcc  -c test.c -o test.o
+arm-linux-gnueabi-gcc  -c max.c -o max.o 
+arm-linux-gnueabi-gcc  -c min.c -o min.o
+arm-linux-gnueabi-gcc  -c var.c -o var.o
+arm-linux-gnueabi-gcc  test.o max.o min.o var.o -o My-binaire
+Génération en mode Release
+mv My-binaire /home/safia
+
+7. Exécution du binaire créer sur votre machine.
+
+safia@ubuntu:~/Documents/TP/lab11$ ./My-binaire
+bash: ./My-binaire: Aucun fichier ou dossier de ce type
+Le binaire créé est de type arm donc il ne peux pas s'exécuter sur host machine, il s'exécutera sur la carte (target machine).

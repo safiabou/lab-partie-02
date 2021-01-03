@@ -1,0 +1,25 @@
+
+Lab 15 : Chargement et boot du noyau sur la carte
+
+1. On branche la carte et on lance Picocom pour se connecter à la carte
+   safia@ubuntu:~/Documents/TP/lab15$ picocom -b 115200 /dev/ttyUSB0
+
+   On charge le noyau et le fichier DTb dans la mémoire DRAM de la Beagle Board
+
+   BOUCHAFA -uboot=>  tftp 0x81000000 zImage
+   BOUCHAFA -uboot=> tftp 0x82000000 am335x-boneblack.dtb
+
+
+2. On boot le noyau avec la commande bootz
+   BOUCHAFA -uboot=> bootz 0x81000000-0x82000000
+   
+   Le noyau ne peut rien faire dans cet état car il n'a pas de root file système.
+
+3. On configure la variable d'environement bootcmd pour automatiser le processus de démarrage
+   BOUCHAFA -uboot=> setenv bootcmd 'tftp 0x81000000 zImage ; tftp 0x82000000 am355x -boneblack.dtb  ; bootz 0x81000000-0x82000000 '
+
+4. On reboot la carte et on vérifie que le noyau se charge automatiquement sans aucune intervention 
+   BOUCHAFA -uboot=> printenv bootcmd
+
+
+
