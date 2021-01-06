@@ -13,7 +13,7 @@ le numéro du canal d'interruption associé au Timer0 est le 66
 4. Après avoir alimenter notre carte et brancher le connecteur USB vers série on voit bien l'apparition du port série : /dev/ttyUSB0
 
 5. On installe le programme de communication série afin d'assurer une communication avec notre carte via le port série
-safia@ubuntu:~/Documents/TP/lab13$ apt install nom-picocom
+safia@ubuntu:~/Documents/TP/lab13$ sudo apt-get install picocom
 
 
 6. On ajoute notre utilisateur au groupe dialout
